@@ -1,0 +1,70 @@
+{% extends 'base/base.html' %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-4">
+            <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="pills-home-tab" data-bs-toggle="pill"
+                            data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home"
+                            aria-selected="true">+Доход
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link expense" id="pills-profile-tab" data-bs-toggle="pill"
+                            data-bs-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile"
+                            aria-selected="true">-Расход
+                    </button>
+                </li>
+            </ul>
+            <div class="tab-content" id="pills-tabContent">
+                <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+                    <form method="post" action="{% url 'add_income' %}">
+                        {% csrf_token %}
+                        {{ income_form.as_p }}
+                        <div class="create-button"><input type="submit" value="Создать"></div>
+                    </form>
+                </div>
+                <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
+                    <form method="post" action="{% url 'add_expense' %}">
+                        {% csrf_token %}
+                        {{ expense_form.as_p }}
+                        <div class="create-button">
+                            <input type="submit" value="Создать">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-4 mt-4">
+        <h4>Последние операции</h4>
+        <table class="table table-striped mt-2">
+            <tr>
+                <td>Операция</td>
+                <td>Дата</td>
+                <td>Сумма</td>
+            </tr>
+            {% for operation in operations %}
+                <tr>
+                    <td>
+                        {{ operation.comment }}
+                        <br>
+                        <p class="category">{{ operation.category }}</p>
+                    </td>
+                    <td>{{ operation.datetime|date:'d.m.Y' }}</td>
+                    <td class="sum{% if operation.proxy_name == 'Expense' %}
+                            expense
+                        {% elif  operation.proxy_name == 'Income' %}
+                        income
+                        {% endif %}">
+                        {% if operation.proxy_name == 'Expense' %}-{% else %}+{% endif %}
+                        {{ operation.sum }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+{% endblock content %}
+<div class="col offset-md-4"></div>

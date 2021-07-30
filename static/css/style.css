@@ -1,0 +1,35 @@
+.category {
+    font-size: 12px;
+    margin: 0;
+}
+
+
+.nav-pills .nav-link.active.expense {
+    background-color: #dc3545;
+}
+
+.create-button {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.sum {
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.expense {
+    color: red;
+}
+
+.income {
+    color: green;
+}
+
+#id_username, #id_password, #id_password1, #id_password2 {
+    border: 1px solid #EB796F;
+    border-radius: 5px;
+    padding: 10px;
+    width: 90%;
+    outline: none;
+}

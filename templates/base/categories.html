@@ -1,0 +1,64 @@
+{% extends 'base/base.html' %}
+{% block header %}
+    Категории
+{% endblock header %}
+{% block content %}
+    <h4>Здесь вы можете создать или удалить нужную категорию</h4>
+
+    <div class="row align-items-start">
+        <div class="col-3">
+            <table class="table table-hover">
+                {% for category_inc in categories_inc %}
+                    <tr class="table-success">
+                        <td>
+                            <div class="d-flex justify-content-between">
+                                {{ category_inc.name }}
+                                <form method="POST" action="{% url 'delete-category' category_inc.id %}">
+                                    {% csrf_token %}<input
+                                        onclick="return confirm('Вы действительно хотите удалить категорию {{ category_inc.name }}?')"
+                                        type="submit" value="" class="btn-close" aria-label="Close">
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+            <form action="{% url 'categories' 'add_inc' %}" method="post">
+                {% csrf_token %}
+                <div class="input-group">
+                    {{ inc_form.name }}
+                    <span class="input-group-btn">
+                        <button class="btn btn-info">Создать</button>
+                    </span>
+                </div>
+            </form>
+        </div>
+        <div class="col-3">
+            <table class="table table-hover">
+                {% for category_exp in categories_exp %}
+                    <tr class="table-danger">
+                        <td>
+                            <div class="d-flex justify-content-between">
+                                {{ category_exp.name }}
+                                <form method="POST" action="{% url 'delete-category' category_exp.id %}">
+                                    {% csrf_token %}<input
+                                        onclick="return confirm('Вы действительно хотите удалить категорию  {{ category_exp.name }}?')"
+                                        type="submit" value="" class="btn-close" aria-label="Close">
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+            <form action="{% url 'categories' 'add_exp' %}" method="post">
+                {% csrf_token %}
+                <div class="input-group">
+                    {{ exp_form.name }}
+                    <span class="input-group-btn">
+                        <button class="btn btn-info">Создать</button>
+                    </span>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock content %}
