@@ -33,3 +33,7 @@
     width: 90%;
     outline: none;
 }
+
+.set_color {
+    text-decoration: none !important;
+}

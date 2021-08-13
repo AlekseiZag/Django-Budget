@@ -1,7 +1,10 @@
 from django.db import models
+from django.utils import timezone
+
 from .inheritance import ProxySuper, ProxyManager
 from django.contrib.auth.models import User
 from .middleware import get_current_user
+from datetime import datetime
 
 
 class Subcategory(models.Model):
@@ -23,9 +26,19 @@ class CategoryTypes(models.Model):
 #         print(get_current_user())
 #         return super().get_queryset().filter(user=get_current_user())
 
+class Color(models.Model):
+    color = models.CharField(max_length=7, verbose_name='Цвет в 16-ти ричной системе', unique=True)
+
+    def __str__(self):
+        return f"{str(self.id)}|{self.color}"
+
+    class Meta:
+        verbose_name = 'Цвет'
+        verbose_name_plural = 'Цвета'
+
 
 class Category(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь', null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, verbose_name='Пользователь', null=True, blank=True)
     name = models.CharField(verbose_name='Название категории', max_length=255)
     date_opened = models.DateField('Дата открытия категории', auto_now_add=True, null=True)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.SET_NULL, verbose_name='Подкатегория', null=True,
@@ -33,20 +46,23 @@ class Category(models.Model):
     type = models.ForeignKey(CategoryTypes, on_delete=models.PROTECT, verbose_name='Тип категории', null=True,
                              blank=True)
 
+    color = models.ForeignKey(Color, on_delete=models.PROTECT, verbose_name='Цвет категории')
+
     # objects = UserFilterCategory()
 
     def __str__(self):
-        return self.name + f'({str(self.user)})'
+        return str(self.id) + self.name + f'({str(self.user)})'
 
     class Meta:
+        unique_together = ('user', 'color', 'name',)
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
 
 class Operation(ProxySuper):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь')
-    category = models.ForeignKey(Category, on_delete=models.PROTECT, verbose_name='Категория')
-    datetime = models.DateTimeField('Дата операции', auto_now_add=True)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name='Категория')
+    datetime = models.DateTimeField('Дата операции', default=timezone.now)
     sum = models.DecimalField('Сумма операции', max_digits=10, decimal_places=2)
     comment = models.CharField('Комментарий к операции', max_length=255, null=True, blank=True)
 

@@ -150,3 +150,6 @@ Thumbs.db #thumbnail cache on Windows
 
 # profiling data
 .prof
+/mydata_1.json
+/mydata_2.json
+/mydata_3.json

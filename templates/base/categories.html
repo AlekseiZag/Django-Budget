@@ -15,7 +15,7 @@
                                 {{ category_inc.name }}
                                 <form method="POST" action="{% url 'delete-category' category_inc.id %}">
                                     {% csrf_token %}<input
-                                        onclick="return confirm('Вы действительно хотите удалить категорию {{ category_inc.name }}?')"
+                                        onclick="return confirm('Вы действительно хотите удалить категорию {{ category_inc.name }} и все операции из этой категории?')"
                                         type="submit" value="" class="btn-close" aria-label="Close">
                                 </form>
                             </div>
@@ -40,9 +40,48 @@
                         <td>
                             <div class="d-flex justify-content-between">
                                 {{ category_exp.name }}
+                                {% if not category_exp.color %}
+                                    <button type="button" class="btn btn-info" data-bs-toggle="modal"
+                                            data-bs-target="#staticBackdrop">
+                                        Задать цвет
+                                    </button>
+
+                                    <!-- Modal -->
+                                    <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static"
+                                         data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel"
+                                         aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="staticBackdropLabel">Добавьте цвет
+                                                        категории "{{ category_exp.name }}"</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                            aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <form action="{% url 'add_color' %}" method="post">
+                                                        {% csrf_token %}
+                                                        <label for="exampleColorInput" class="form-label">Задайте
+                                                            сами</label>
+                                                        <input type="hidden" value="{{ category_exp.id }}" name="category_id">
+                                                        <input name="color" type="color"
+                                                               class="form-control form-control-color"
+                                                               id="exampleColorInput" value="#563d7c"
+                                                               title="Choose your color">
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary"
+                                                            data-bs-dismiss="modal">Закрыть
+                                                    </button>
+                                                    <button type="submit" class="btn btn-primary">Создать</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div><a href="#" class="set_color"></a>{% endif %}
                                 <form method="POST" action="{% url 'delete-category' category_exp.id %}">
                                     {% csrf_token %}<input
-                                        onclick="return confirm('Вы действительно хотите удалить категорию  {{ category_exp.name }}?')"
+                                        onclick="return confirm('Вы действительно хотите удалить категорию  {{ category_exp.name }} и все операции из этой категории?')"
                                         type="submit" value="" class="btn-close" aria-label="Close">
                                 </form>
                             </div>

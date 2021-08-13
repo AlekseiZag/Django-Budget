@@ -2,13 +2,17 @@ from django.contrib.auth import logout, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.views import LoginView
+from django.db.models import Sum, Count
 from django.http import Http404
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import FormView, DeleteView
+from .models import Operation, Category, CategoryTypes, Expense, Color
+from .forms import ExpenseForm, IncomeForm, ExpCategoryAddForm, IncCategoryAddForm, ColorForm
+from .service import Month
 
-from .models import Operation, Category, CategoryTypes
-from .forms import ExpenseForm, IncomeForm, ExpCategoryAddForm, IncCategoryAddForm
+import datetime
+import random
 
 common_expense_list = ['Питание', 'Транспорт', 'Связь, интернет', 'Коммунальные платежи', 'Медицина',
                        'Страховки, налоги',
@@ -63,13 +67,45 @@ class CategoryDeleteView(DeleteView):
 
 @login_required
 def expense_list(request):
-    operations = Operation.objects.filter(user=request.user)
+    labels = []
+    data = []
+    colors = []
+
+    operations = Operation.objects.filter(user=request.user).order_by('-datetime')
+    now = datetime.datetime.now()
+    year = now.year
+    month_number = now.month
+
+    if request.method == 'POST':
+        month_number = request.POST.get('month', None)
+        year = int(request.POST.get('year', None))
+        if int(month_number) == 0:
+            year -= 1
+            month_number = 12
+        elif int(month_number) > 12:
+            year += 1
+            month_number = 1
+    month_name = Month.get_name(int(month_number))
+    expense_per_month = Expense.objects.filter(datetime__year=year, datetime__month=month_number,
+                                               user=request.user).aggregate(total_expense=Sum('sum'))
+    expense_per_category = Expense.objects.values('category__name', 'category__color__color').filter(
+        datetime__year=year,
+        datetime__month=month_number,
+        user=request.user).annotate(
+        common_sum=Sum('sum')).order_by('-common_sum')
+
+    for category in expense_per_category:
+        labels.append(category['category__name'])
+        data.append(str(category['common_sum']))
+        colors.append(category['category__color__color'])
     expense_form = ExpenseForm()
-    expense_form.fields['category'].queryset = Category.objects.filter(type__name='exp', user=request.user)
     income_form = IncomeForm()
-    income_form.fields['category'].queryset = Category.objects.filter(type__name='inc', user=request.user)
     return render(request, 'base/index.html',
-                  context={'operations': operations, 'expense_form': expense_form, 'income_form': income_form})
+                  context={'operations': operations, 'expense_form': expense_form, 'income_form': income_form,
+                           'expense_per_month': expense_per_month, 'year': year, 'month_name': month_name,
+                           'month_number': month_number, 'expense_per_category': expense_per_category, 'labels': labels,
+                           'data': data,
+                           'colors': colors, })
 
 
 def logout_view(request):
@@ -97,10 +133,23 @@ def add_income(request):
     return redirect('expense_list')
 
 
+def add_color(request):
+    if request.method == 'POST':
+        color = request.POST.get('color', None)
+        category_id = request.POST.get('category_id', None)
+        if color and category_id:
+            current_category = Category.objects.get(pk=category_id)
+            if current_category.user != request.user:
+                print('Чужой аккаунт')
+                raise Exception
+            print(color)
+            print(category_id)
+
+    return redirect('categories')
+
+
 @login_required
 def show_categories(request, action=None):
-    objs = [Category(name=item, user=request.user, type_id=1) for item in common_expense_list]
-    objs.append(Category(name='Зарплата', user=request.user, type_id=2))
     categories_exp = Category.objects.filter(user=request.user, type__name='exp')
     categories_inc = Category.objects.filter(user=request.user, type__name='inc')
     context = {'categories_exp': categories_exp, 'categories_inc': categories_inc,
@@ -123,3 +172,14 @@ def show_categories(request, action=None):
             new_record.save()
         return redirect('categories')
     return render(request, 'base/categories.html', context)
+
+
+# def pie(request):
+# r = lambda: random.randint(0, 255)
+# print('#%02X%02X%02X' % (r(), r(), r()))
+
+# return render(request, 'base/pie.html', {})
+
+
+def pie(request):
+    return render(request, 'base/pie.html', {'form': ColorForm()})
