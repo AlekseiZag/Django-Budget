@@ -12,7 +12,4 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('register/', views.RegisterPage.as_view(), name='register'),
     path('add_color/', views.add_color, name='add_color'),
-
-    path('pie', views.pie, name='pie'),
-    # path('accounts/register/', views.CustomLoginView.as_view(), name='register'),
 ]

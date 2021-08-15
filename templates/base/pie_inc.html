@@ -1,0 +1,20 @@
+<div id="container" style="width: 50%;">
+    <canvas id="pie-chart-inc"></canvas>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+<script>
+    var incconfig = {
+        type: 'doughnut',
+        data: {
+            datasets: [{
+                data: {{ data_inc|safe }},
+                backgroundColor: {{ colors_inc|safe }},
+                label: 'Population'
+            }],
+        },
+        options: {
+            responsive: true
+        }
+    };
+
+</script>

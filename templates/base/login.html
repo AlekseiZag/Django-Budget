@@ -5,18 +5,13 @@
         <h1>Вход</h1>
     </div>
 
-    <div class="col-4">
+    <div class="col-md-4 col-sm-8  col-xs-12">
         <form method="POST">
             {% csrf_token %}
             {{ form.as_p }}
-            <input class="button col-3" type="submit" value="Login">
+            <input class="button col-3" type="submit" value="Войти">
         </form>
-        <p>Don't have an account? <a href="{% url  'register' %}">Register</a></p>
+        <p>Нет аккаунта? <a href="{% url  'register' %}">Регистрация</a></p>
     </div>
-
-
-
-
-
 
 {% endblock content %}

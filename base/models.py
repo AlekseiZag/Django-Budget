@@ -3,8 +3,6 @@ from django.utils import timezone
 
 from .inheritance import ProxySuper, ProxyManager
 from django.contrib.auth.models import User
-from .middleware import get_current_user
-from datetime import datetime
 
 
 class Subcategory(models.Model):
@@ -20,11 +18,6 @@ class CategoryTypes(models.Model):
     def __str__(self):
         return self.name + str(self.pk)
 
-
-# class UserFilterCategory(models.Manager):
-#     def get_queryset(self):
-#         print(get_current_user())
-#         return super().get_queryset().filter(user=get_current_user())
 
 class Color(models.Model):
     color = models.CharField(max_length=7, verbose_name='Цвет в 16-ти ричной системе', unique=True)
@@ -46,17 +39,16 @@ class Category(models.Model):
     type = models.ForeignKey(CategoryTypes, on_delete=models.PROTECT, verbose_name='Тип категории', null=True,
                              blank=True)
 
-    color = models.ForeignKey(Color, on_delete=models.PROTECT, verbose_name='Цвет категории')
-
-    # objects = UserFilterCategory()
+    color = models.ForeignKey(Color, on_delete=models.PROTECT, verbose_name='Цвет категории', null=True, blank=True)
 
     def __str__(self):
-        return str(self.id) + self.name + f'({str(self.user)})'
+        return self.name
 
     class Meta:
         unique_together = ('user', 'color', 'name',)
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
+        ordering = ('name',)
 
 
 class Operation(ProxySuper):
@@ -75,9 +67,6 @@ class Operation(ProxySuper):
 
     def get_type(self, *args, **kwargs):
         return str(type(self))
-
-    # def get_absolute_url(self):
-    #     return reverse('company_detail', kwargs={'pk': self.pk})
 
 
 class Income(Operation):
@@ -104,6 +93,3 @@ class BudgetDetails(models.Model):
     budget = models.ForeignKey(Budget, on_delete=models.CASCADE, verbose_name='Бюджет')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name='Категория')
     sum = models.DecimalField('Сумма', max_digits=10, decimal_places=2)
-
-# class Placement(models.Model):
-#     party = models.ForeignKey(to=Operation, on_delete=models.CASCADE)

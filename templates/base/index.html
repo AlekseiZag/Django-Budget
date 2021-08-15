@@ -1,134 +1,211 @@
 {% extends 'base/base.html' %}
+{% block header %}Мой Бюджет{% endblock header %}
 
 {% block content %}
-<div class="d-flex justify-content-between">
-    <div class="col-md-4">
-        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="pills-home-tab" data-bs-toggle="pill"
-                        data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home"
-                        aria-selected="true">+Доход
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link expense" id="pills-profile-tab" data-bs-toggle="pill"
-                        data-bs-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile"
-                        aria-selected="true">-Расход
-                </button>
-            </li>
-        </ul>
-        <div class="tab-content" id="pills-tabContent">
-            <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
-                <form method="post" action="{% url 'add_income' %}">
-                    {% csrf_token %}
-                    {{ income_form.as_p }}
-                    <div class="create-button"><input type="submit" value="Создать"></div>
-                </form>
-            </div>
-            <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
-                <form method="post" action="{% url 'add_expense' %}">
-                    {% csrf_token %}
-                    {{ expense_form.as_p }}
-                    <div class="create-button">
-                        <input type="submit" value="Создать">
+    <div class="row align-items-start">
+        <div class="col">
+            <div class="col-11">
+                <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="pills-home-tab" data-bs-toggle="pill"
+                                data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home"
+                                aria-selected="true">+Доход
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link expense" id="pills-profile-tab" data-bs-toggle="pill"
+                                data-bs-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile"
+                                aria-selected="true">-Расход
+                        </button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="pills-tabContent">
+                    <div class="tab-pane fade show active" id="pills-home" role="tabpanel"
+                         aria-labelledby="pills-home-tab">
+                        <form method="post" action="{% url 'add_income' %}">
+                            {% csrf_token %}
+                            {{ income_form.as_p }}
+                            <div class="create-button"><input type="submit" value="Создать"></div>
+                        </form>
                     </div>
-                </form>
+                    <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
+                        <form method="post" action="{% url 'add_expense' %}">
+                            {% csrf_token %}
+                            {{ expense_form.as_p }}
+                            <div class="create-button">
+                                <input type="submit" value="Создать">
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-    <div class="col-md-6 offset-md-2">
-        <div class="col-md-4 offset-md-5">
-            <p><u>Статистика</u></p>
-            {#                <p>{% now 'M' %} {% now 'Y' %}</p>#}
-            <p>Расходы за {{ year }} {{ month_name }}</p>
-            <p style="font-size: 21px;">
-            <form action="" method="post">
-                {% csrf_token %}
-                <input type="hidden" name="month" value="{{ month_number|add:"-1" }}">
-                <input type="hidden" name="year" value="{{ year }}">
-                <input type="submit" value="←">
-            </form>
-            <p>{{ expense_per_month.total_expense }}</p>
-            <form action="" method="post">
-                {% csrf_token %}
-                <input type="hidden" name="month" value="{{ month_number|add:"1" }}">
-                <input type="hidden" name="year" value="{{ year }}">
-                <input type="submit" value="→">
-            </form>
-            </p>
-        </div>
-{% include 'base/pie.html' %}
-    </div>
-</div>
-<div class="row mt-5">
-    <div class="col-4 mt-3">
-        <h4>Последние операции</h4>
-        <table class="table table-striped mt-2">
-            <tr>
-                <th>Операция</th>
-                <th>Дата</th>
-                <th>Сумма</th>
-            </tr>
-            {% for operation in operations %}
-                <tr>
-                    <td>
-                        {{ operation.comment }}
-                        <br>
-                        <p class="category">{{ operation.category.name }}</p>
-                    </td>
-                    <td>{{ operation.datetime|date:'d.m.Y' }}</td>
-                    <td class="sum{% if operation.proxy_name == 'Expense' %}
+            <div class="col-12 mt-2">
+                <h4>Последние операции</h4>(Всего: {{ count }})
+                <table class="table table-striped mt-2">
+                    <tr>
+                        <th>Операция</th>
+                        <th>Дата</th>
+                        <th>Сумма</th>
+                    </tr>
+                    {% for operation in page.object_list %}
+                        <tr>
+                            <td>
+                                {{ operation.comment }}
+                                <br>
+                                <p class="category">{{ operation.category.name }}</p>
+                            </td>
+                            <td>{{ operation.datetime|date:'d.m.Y' }}</td>
+                            <td class="sum{% if operation.proxy_name == 'Expense' %}
                             expense
                         {% elif  operation.proxy_name == 'Income' %}
                         income
                         {% endif %}">
-                        {% if operation.proxy_name == 'Expense' %}-{% else %}+{% endif %}
-                        {{ operation.sum }}
-                    </td>
-                </tr>
-            {% endfor %}
-        </table>
-    </div>
-    <div class="col-5 offset-md-3">
-            <hr>
-
-            <div class="row ">
-                <div class="col-sm-4 panel-pad-10">
-                    <div class="panel panel-default">
-                        <div class="panel-body"><strong>Категории</strong></div>
+                                {% if operation.proxy_name == 'Expense' %}-{% else %}+{% endif %}
+                                {{ operation.sum }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    <div class="page-links">
+                        {% if page.has_previous %}
+                            <a href="{% url 'expense_list' %}?page={{ page.previous_page_number }}"><<<</a>
+                        {% endif %}
+                        {% if page.has_next %}
+                            <a href="{% url 'expense_list' %}?page={{ page.next_page_number }}">>>></a>
+                        {% endif %}
                     </div>
-                </div>
-                <div class="col-sm-4 panel-pad-10">
-                    <div class="panel panel-default">
-                        <div class="panel-body"></div>
-                    </div>
-                </div>
-                <div class="col-sm-4 panel-pad-10">
-                    <div class="panel panel-default">
-                        <div class="panel-body"><strong>Сумма</strong></div>
-                    </div>
-                </div>
-                {% for category in expense_per_category %}
-                    <div class="col-sm-4 panel-pad-10">
-                        <div class="panel panel-default">
-                            <div class="panel-body">{{ category.category__name }}</div>
-                        </div>
-                    </div>
-                    <div class="col-sm-4 panel-pad-10">
-                        <div class="panel panel-default">
-                            <div style="background-color: {{ category.category__color__color }}; margin-left:40px; width: 25px; height: 25px;" class="panel-body"></div>
-                        </div>
-                    </div>
-                    <div class="col-sm-4 panel-pad-10">
-                        <div class="panel panel-default">
-                            <div class="panel-body">{{ category.common_sum }} руб.</div>
-                        </div>
-                    </div>
-                {% endfor %}
+                </table>
             </div>
+        </div>
 
+        <div class="col">
+
+            <nav>
+                <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                    <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home"
+                            type="button" role="tab" aria-controls="nav-home" aria-selected="true">Доходы
+                    </button>
+                    <button class="nav-link " id="nav-profile-tab"
+                            data-bs-toggle="tab" data-bs-target="#nav-profile"
+                            type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Расходы
+                    </button>
+
+                </div>
+            </nav>
+            <div class="tab-content" id="nav-tabContent">
+                <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+                    <div class="col-md-10 offset-4 ">
+                        <div class="col-md-6">
+                            <p class="center-text"><u>Статистика</u></p>
+                            <p class="center-text">Доходы за {{ year }} {{ month_name }}</p>
+                            <div class="forms">
+                                <form action="" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="month" value="{{ month_number|add:"-1" }}">
+                                    <input type="hidden" name="year" value="{{ year }}">
+                                    <input type="submit" value="←">
+                                </form>
+                                <p>{{ income_per_month.total_income|default_if_none:"0" }}</p>
+                                <form action="" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="month" value="{{ month_number|add:"1" }}">
+                                    <input type="hidden" name="year" value="{{ year }}">
+                                    <input type="submit" value="→">
+                                </form>
+                            </div>
+                        </div>
+                        {% include 'base/pie_inc.html' %}
+                    </div>
+
+
+                    <div class="accordion col-md-10 offset-2" id="accordionExample">
+                        {% for category in income_per_category %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingThree">
+                                    <button class="accordion-button collapsed d-flex justify-content-between"
+                                            type="button" data-bs-toggle="collapse"
+                                            data-bs-target="#collapseThree{{ category.category_id }}"
+                                            aria-expanded="false"
+                                            aria-controls="collapseThree">
+                                        <div class="col">{{ category.category__name }}<br>{{ category.common_sum }}&nbsp;руб.
+                                        </div>
+                                        <div class="col">
+                                            <div style="background-color: {{ category.category__color__color }}; width: 25px !important; height: 25px;"></div>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="collapseThree{{ category.category_id }}" class="accordion-collapse collapse"
+                                     aria-labelledby="headingThree" data-bs-parent="#accordionExample">
+                                    <div class="accordion-body">
+                                        {% for cat in category.operations_per_category %}
+                                            <div class="row">
+                                                <div class="col"><strong>{{ cat.comment }}</strong></div>
+                                                <div class="col">{{ cat.sum }} руб.</div>
+                                                <hr>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+                    <div class="col-md-10 offset-4 ">
+                        <div class="col-md-6">
+                            <p class="center-text"><u>Статистика</u></p>
+                            <p class="center-text">Расходы за {{ year }} {{ month_name }}</p>
+                            <div class="forms">
+                                <form action="" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="month" value="{{ month_number|add:"-1" }}">
+                                    <input type="hidden" name="year" value="{{ year }}">
+                                    <input type="submit" value="←">
+                                </form>
+                                <p>{{ expense_per_month.total_expense|default_if_none:"0" }}</p>
+                                <form action="" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="month" value="{{ month_number|add:"1" }}">
+                                    <input type="hidden" name="year" value="{{ year }}">
+                                    <input type="submit" value="→">
+                                </form>
+                            </div>
+                        </div>
+                        {% include 'base/pie_exp.html' %}
+                    </div>
+
+                    <div class="accordion col-md-10 offset-2" id="accordionExample">
+                        {% for category in expense_per_category %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingThree">
+                                    <button class="accordion-button collapsed d-flex justify-content-between"
+                                            type="button" data-bs-toggle="collapse"
+                                            data-bs-target="#collapseThree{{ category.category_id }}"
+                                            aria-expanded="false"
+                                            aria-controls="collapseThree">
+                                        <div class="col">{{ category.category__name }}<br>{{ category.common_sum }}&nbsp;руб.
+                                        </div>
+                                        <div class="col">
+                                            <div style="background-color: {{ category.category__color__color }}; width: 25px !important; height: 25px;"></div>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="collapseThree{{ category.category_id }}" class="accordion-collapse collapse"
+                                     aria-labelledby="headingThree" data-bs-parent="#accordionExample">
+                                    <div class="accordion-body">
+                                        {% for cat in category.operations_per_category %}
+                                            <div class="row">
+                                                <div class="col"><strong>{{ cat.comment }}</strong></div>
+                                                <div class="col">{{ cat.sum }} руб.</div>
+                                                <hr>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
-
 {% endblock content %}
-<div class="col offset-md-4"></div>

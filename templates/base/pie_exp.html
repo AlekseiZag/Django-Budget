@@ -1,6 +1,5 @@
-{{ form }}
 <div id="container" style="width: 50%;">
-    <canvas id="pie-chart"></canvas>
+    <canvas id="pie-chart-exp"></canvas>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
 <script>
@@ -8,12 +7,10 @@
         type: 'doughnut',
         data: {
             datasets: [{
-                data: {{ data|safe }},
-                {#data: [1780000.15, 1630000, 582602, 416522, 411634, 318332, 318332, 306659, 233040,233040],#}
-                backgroundColor: {{ colors|safe }},
+                data: {{ data_exp|safe }},
+                backgroundColor: {{ colors_exp|safe }},
                 label: 'Population'
             }],
-            {#labels: {{ labels|safe }}#}
         },
         options: {
 
@@ -22,7 +19,9 @@
     };
 
     window.onload = function () {
-        var ctx = document.getElementById('pie-chart').getContext('2d');
+        var ctx = document.getElementById('pie-chart-exp').getContext('2d');
         window.myPie = new Chart(ctx, config);
+        var incctx = document.getElementById('pie-chart-inc').getContext('2d');
+        window.myPie = new Chart(incctx, incconfig);
     };
 </script>

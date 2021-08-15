@@ -3,6 +3,8 @@ from django.db import models
 
 
 class ProxySuper(models.Model):
+    """Общий класс операций (расходов и доходов)"""
+
     class Meta:
         abstract = True
 

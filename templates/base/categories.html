@@ -6,13 +6,52 @@
     <h4>Здесь вы можете создать или удалить нужную категорию</h4>
 
     <div class="row align-items-start">
-        <div class="col-3">
+        <div class="col-md-3 col-sm-8  col-xs-12 mb-4">
             <table class="table table-hover">
                 {% for category_inc in categories_inc %}
                     <tr class="table-success">
                         <td>
                             <div class="d-flex justify-content-between">
                                 {{ category_inc.name }}
+
+                                {% if not category_inc.color %}
+                                    <button type="button" class="btn btn-info" data-bs-toggle="modal"
+                                            data-bs-target="#staticBackdrop">
+                                        Задать цвет
+                                    </button>
+
+                                    <!-- Modal -->
+                                    <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static"
+                                         data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel"
+                                         aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="staticBackdropLabel">Добавьте цвет
+                                                        категории "{{ category_inc.name }}"</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                            aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <form action="{% url 'add_color' %}" method="post">
+                                                        {% csrf_token %}
+                                                        <label for="exampleColorInput" class="form-label">Задайте
+                                                            сами</label><br>
+                                                        {{ form.color }}
+                                                        <input type="hidden" value="{{ category_inc.id }}"
+                                                               name="category_id">
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary"
+                                                            data-bs-dismiss="modal">Закрыть
+                                                    </button>
+                                                    <button type="submit" class="btn btn-primary">Создать</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>{% endif %}
+
                                 <form method="POST" action="{% url 'delete-category' category_inc.id %}">
                                     {% csrf_token %}<input
                                         onclick="return confirm('Вы действительно хотите удалить категорию {{ category_inc.name }} и все операции из этой категории?')"
@@ -33,7 +72,7 @@
                 </div>
             </form>
         </div>
-        <div class="col-3">
+        <div class="col-md-3 col-sm-8  col-xs-12">
             <table class="table table-hover">
                 {% for category_exp in categories_exp %}
                     <tr class="table-danger">
@@ -62,12 +101,10 @@
                                                     <form action="{% url 'add_color' %}" method="post">
                                                         {% csrf_token %}
                                                         <label for="exampleColorInput" class="form-label">Задайте
-                                                            сами</label>
-                                                        <input type="hidden" value="{{ category_exp.id }}" name="category_id">
-                                                        <input name="color" type="color"
-                                                               class="form-control form-control-color"
-                                                               id="exampleColorInput" value="#563d7c"
-                                                               title="Choose your color">
+                                                            сами</label><br>
+                                                        {{ form.color }}
+                                                        <input type="hidden" value="{{ category_exp.id }}"
+                                                               name="category_id">
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-secondary"
@@ -78,7 +115,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div><a href="#" class="set_color"></a>{% endif %}
+                                    </div>{% endif %}
                                 <form method="POST" action="{% url 'delete-category' category_exp.id %}">
                                     {% csrf_token %}<input
                                         onclick="return confirm('Вы действительно хотите удалить категорию  {{ category_exp.name }} и все операции из этой категории?')"

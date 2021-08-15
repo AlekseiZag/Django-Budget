@@ -34,6 +34,47 @@
     outline: none;
 }
 
-.set_color {
-    text-decoration: none !important;
+
+.forms {
+    display: flex;
+    justify-content: space-between;
+}
+
+.center-text {
+    text-align: center;
+}
+
+.right-text {
+    text-align: right;
+}
+
+.mobile-nav {
+    display: none;
+}
+
+.mobile {
+    display: none;
+}
+
+@media (max-width: 550px) {
+    .offset-4, .offset-2 {
+        margin-left: 0;
+    }
+
+    #container {
+        margin-left: 22%;
+    }
+
+    .menu {
+        display: none;
+    }
+
+    .container-md.navbar {
+        padding: 0;
+        margin: 0;
+    }
+
+    .mobile-nav {
+        display: block;
+    }
 }

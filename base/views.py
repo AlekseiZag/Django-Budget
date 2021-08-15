@@ -1,30 +1,28 @@
 from django.contrib.auth import logout, login
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.views import LoginView
-from django.db.models import Sum, Count
+from django.db import IntegrityError
+from django.core.paginator import Paginator
 from django.http import Http404
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import FormView, DeleteView
-from .models import Operation, Category, CategoryTypes, Expense, Color
+from .models import Operation, Category, CategoryTypes, Expense, Color, Income
 from .forms import ExpenseForm, IncomeForm, ExpCategoryAddForm, IncCategoryAddForm, ColorForm
-from .service import Month
+from .service import Month, operations_per_month, sum_per_category, data_for_chart
 
 import datetime
-import random
 
 common_expense_list = ['Питание', 'Транспорт', 'Связь, интернет', 'Коммунальные платежи', 'Медицина',
-                       'Страховки, налоги',
-                       'Образование', 'Одежда', 'Кафе, рестораны', 'Спорт', 'Хобби, развлечения', 'Путешествия',
-                       'Подарки',
-                       'Прочее']
-
-
-# common_income_list = ['Зарплата', ]
+                       'Страховки, налоги', 'Образование', 'Одежда', 'Кафе, рестораны', 'Спорт', 'Хобби, развлечения',
+                       'Путешествия', 'Подарки', 'Прочее']
 
 
 class CustomLoginView(LoginView):
+    """Вход пользователя"""
+
     template_name = 'base/login.html'
     fields = '__all__'
     redirect_authenticated_user = True
@@ -34,6 +32,8 @@ class CustomLoginView(LoginView):
 
 
 class RegisterPage(FormView):
+    """Регистрация пользователя"""
+
     template_name = 'base/register.html'
     form_class = UserCreationForm
     redirect_authenticated_user = True
@@ -42,8 +42,9 @@ class RegisterPage(FormView):
     def form_valid(self, form):
         user = form.save()
         if user is not None:
-            objs = [Category(name=item, user=user, type_id=1) for item in common_expense_list]
-            objs.append(Category(name='Зарплата', user=user, type_id=2))
+            objs = [Category(name=item, user=user, type_id=1, color_id=common_expense_list.index(item) + 1) for item in
+                    common_expense_list]
+            objs.append(Category(name='Зарплата', user=user, type_id=2, color_id=len(common_expense_list) + 1))
             Category.objects.bulk_create(objs=objs)
             login(self.request, user)
         return super(RegisterPage, self).form_valid(form)
@@ -55,6 +56,8 @@ class RegisterPage(FormView):
 
 
 class CategoryDeleteView(DeleteView):
+    """Удаление категории"""
+
     model = Category
     success_url = reverse_lazy('categories')
 
@@ -67,11 +70,16 @@ class CategoryDeleteView(DeleteView):
 
 @login_required
 def expense_list(request):
-    labels = []
-    data = []
-    colors = []
+    """
+    Главная страница, отображение списка операций и добавление новых.
+    Отображение статистики за месяц.
+    """
 
     operations = Operation.objects.filter(user=request.user).order_by('-datetime')
+    operation_paginator = Paginator(operations, 10)
+    page_num = request.GET.get('page')
+    page = operation_paginator.get_page(page_num)
+
     now = datetime.datetime.now()
     year = now.year
     month_number = now.month
@@ -86,26 +94,26 @@ def expense_list(request):
             year += 1
             month_number = 1
     month_name = Month.get_name(int(month_number))
-    expense_per_month = Expense.objects.filter(datetime__year=year, datetime__month=month_number,
-                                               user=request.user).aggregate(total_expense=Sum('sum'))
-    expense_per_category = Expense.objects.values('category__name', 'category__color__color').filter(
-        datetime__year=year,
-        datetime__month=month_number,
-        user=request.user).annotate(
-        common_sum=Sum('sum')).order_by('-common_sum')
 
-    for category in expense_per_category:
-        labels.append(category['category__name'])
-        data.append(str(category['common_sum']))
-        colors.append(category['category__color__color'])
+    expense_per_month = operations_per_month(Expense, year, month_number, request.user)
+    expense_per_category = sum_per_category(Expense, year, month_number, request.user)
+
+    income_per_month = operations_per_month(Income, year, month_number, request.user)
+    income_per_category = sum_per_category(Income, year, month_number, request.user)
+
+    data_exp, colors_exp = data_for_chart(expense_per_category)
+    data_inc, colors_inc = data_for_chart(income_per_category)
+
     expense_form = ExpenseForm()
     income_form = IncomeForm()
     return render(request, 'base/index.html',
                   context={'operations': operations, 'expense_form': expense_form, 'income_form': income_form,
-                           'expense_per_month': expense_per_month, 'year': year, 'month_name': month_name,
-                           'month_number': month_number, 'expense_per_category': expense_per_category, 'labels': labels,
-                           'data': data,
-                           'colors': colors, })
+                           'expense_per_month': expense_per_month, 'income_per_month': income_per_month, 'year': year,
+                           'month_name': month_name, 'month_number': month_number,
+                           'expense_per_category': expense_per_category, 'income_per_category': income_per_category,
+                           'data_exp': data_exp, 'colors_exp': colors_exp, 'colors_inc': colors_inc,
+                           'data_inc': data_inc,
+                           'count': operation_paginator.count, 'page': page})
 
 
 def logout_view(request):
@@ -113,7 +121,10 @@ def logout_view(request):
     return redirect('/')
 
 
+@login_required
 def add_expense(request):
+    """Добавление статьи расходов"""
+
     if request.method == 'POST':
         expense_form = ExpenseForm(request.POST)
         if expense_form.is_valid():
@@ -123,7 +134,10 @@ def add_expense(request):
     return redirect('expense_list')
 
 
+@login_required
 def add_income(request):
+    """Добавление статьи доходов"""
+
     if request.method == 'POST':
         income_form = IncomeForm(request.POST)
         if income_form.is_valid():
@@ -133,27 +147,41 @@ def add_income(request):
     return redirect('expense_list')
 
 
+@login_required
 def add_color(request):
+    """Добавление цвета для новой категории"""
+
     if request.method == 'POST':
-        color = request.POST.get('color', None)
         category_id = request.POST.get('category_id', None)
-        if color and category_id:
+        try:
             current_category = Category.objects.get(pk=category_id)
             if current_category.user != request.user:
-                print('Чужой аккаунт')
-                raise Exception
-            print(color)
-            print(category_id)
-
+                messages.error(request, "Данная категория не Ваша!")
+                return redirect('categories')
+        except Category.DoesNotExist:
+            messages.error(request, 'Данная катеория не найдена')
+            return redirect('categories')
+        except ValueError as e:
+            messages.error(request, e)
+            return redirect('categories')
+        color_form = ColorForm(request.POST)
+        color_obj, created = Color.objects.get_or_create(color=color_form.data['color'])
+        current_category.color = color_obj
+        try:
+            current_category.save()
+        except IntegrityError:
+            messages.error(request, "Данный цвет уже ипользуется, выберите другой")
     return redirect('categories')
 
 
 @login_required
 def show_categories(request, action=None):
+    """Отображение списка категорий и добавление новых"""
+
     categories_exp = Category.objects.filter(user=request.user, type__name='exp')
     categories_inc = Category.objects.filter(user=request.user, type__name='inc')
     context = {'categories_exp': categories_exp, 'categories_inc': categories_inc,
-               'inc_form': IncCategoryAddForm, 'exp_form': ExpCategoryAddForm}
+               'inc_form': IncCategoryAddForm, 'exp_form': ExpCategoryAddForm, 'form': ColorForm()}
 
     if request.method == 'POST':
         if action == 'add_inc':
@@ -163,8 +191,8 @@ def show_categories(request, action=None):
             form = ExpCategoryAddForm(request.POST)
             type_new_record = CategoryTypes.objects.filter(name='exp').first()
         else:
-            form = None
-            type_new_record = None
+            messages.error(request, "Произошла ошибка, попробуйте еще раз")
+            return redirect('categories')
         if form.is_valid():
             new_record = form.save(commit=False)
             new_record.user = request.user
@@ -172,14 +200,3 @@ def show_categories(request, action=None):
             new_record.save()
         return redirect('categories')
     return render(request, 'base/categories.html', context)
-
-
-# def pie(request):
-# r = lambda: random.randint(0, 255)
-# print('#%02X%02X%02X' % (r(), r(), r()))
-
-# return render(request, 'base/pie.html', {})
-
-
-def pie(request):
-    return render(request, 'base/pie.html', {'form': ColorForm()})
