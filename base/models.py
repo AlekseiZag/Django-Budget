@@ -42,7 +42,7 @@ class Category(models.Model):
     color = models.ForeignKey(Color, on_delete=models.PROTECT, verbose_name='Цвет категории', null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return self.name + str(self.id)
 
     class Meta:
         unique_together = ('user', 'color', 'name',)

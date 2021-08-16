@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-$zh6n^0+swhrz*zhvn!^jg4(&-dk^aqb&r)m&8&^o9i3s@m94b
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', '192.168.1.12', ]
+ALLOWED_HOSTS = ['0.0.0.0', '192.168.1.12', '127.0.0.1', ]
 
 # Application definition
 
@@ -72,7 +72,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'mybudget.wsgi.application'
-
 
 # DATABASES = {
 #     'default': {
