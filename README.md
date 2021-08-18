@@ -6,5 +6,8 @@
 ![alt text](https://github.com/AlekseiZag/screenshots/blob/main/3.png "Категории") 
 
 ![alt text](https://github.com/AlekseiZag/screenshots/blob/main/4.png "Цвет") 
+
+![alt text](https://github.com/AlekseiZag/screenshots/blob/main/5.jpg "Mobile") 
+
 _______________________________
 https://budgetcontrol.xyz/
