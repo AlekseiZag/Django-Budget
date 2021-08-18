@@ -1,4 +1,5 @@
 # Сайт для контроля личного бюджета
+(Django + Python + PostgreSQL + YandexCloud)
 ![alt text](https://github.com/AlekseiZag/screenshots/blob/main/1.png "Вход")
 
 ![alt text](https://github.com/AlekseiZag/screenshots/blob/main/2.png "Главная") 
