@@ -13,20 +13,22 @@ import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+# local
+# BASE_DIR = Path(__file__).resolve().parent.parent
 
+# server
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-$zh6n^0+swhrz*zhvn!^jg4(&-dk^aqb&r)m&8&^o9i3s@m94b'
-# S_KEY = os.environ.get('djangokey_1')
-# SEC_KEY = f"'{S_KEY}'"
-# SECRET_KEY = SEC_KEY
-# SECURITY WARNING: don't run with debug turned on in production!
+S_KEY = os.environ.get('djangokey_budget')
+SEC_KEY = f"'{S_KEY}'"
+SECRET_KEY = SEC_KEY
+
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', '192.168.1.12', '127.0.0.1', ]
+ALLOWED_HOSTS = ['0.0.0.0', '192.168.1.12', '127.0.0.1', 'budgetcontrol.xyz']
 
 # Application definition
 
@@ -52,7 +54,7 @@ MIDDLEWARE = [
     'base.middleware.CurrentRequestMiddlewareUser',
 ]
 
-ROOT_URLCONF = 'mybudget.urls'
+ROOT_URLCONF = 'config.urls'
 
 TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
 TEMPLATES = [
@@ -71,7 +73,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'mybudget.wsgi.application'
+WSGI_APPLICATION = 'config.wsgi.application'
 
 # DATABASES = {
 #     'default': {
@@ -114,7 +116,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
@@ -124,13 +126,19 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
-
-STATIC_URL = '/static/'
-
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
 
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "config/static"),
+]
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
