@@ -1,4 +1,4 @@
-# Сайт для контроля личного бюджета
+# Web-приложение для контроля личного бюджета
 (Django + Python + PostgreSQL + YandexCloud)
 ![alt text](https://github.com/AlekseiZag/screenshots/blob/main/1.png "Вход")
 
